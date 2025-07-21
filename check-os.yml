@@ -1,0 +1,55 @@
+# ---
+# - name: "check os info"
+#   hosts: "{{ HOSTS }}"
+#   tasks:
+  
+#   - name: "copy script"
+#     copy:
+#       src: /files/os_info.sh
+#       dest: /tmp
+#       owner: user
+#       group: user
+#       mode: '0777'
+
+#   - name: "run script"
+#     command: "/home/user/monitor_os.sh"
+#     register: script_output
+
+#   - name: "output"
+#     debug:
+#       var: script_output.stdout_lines
+---
+- name: "Check OS info"
+  # hosts: "{{ HOSTS }}"
+  hosts: test_lin
+  vars_files:
+    - 'group_vars/test_lin'
+  gather_facts: false
+  become: yes  # Добавлено если нужны права root
+  tasks:
+
+  - name: "Copy script"
+    copy:
+      src: "files/os_info.sh"  # Лучше использовать относительный путь
+      dest: "/home/user/monitor_os.sh"  # Исправлен путь назначения
+      owner: user
+      group: user
+      mode: '0755'  # Более безопасные права
+
+  - name: "Run script"
+    shell: "/home/user/monitor_os.sh"
+    args:
+      executable: /bin/bash
+    register: script_output
+    ignore_errors: yes  # Если нужно продолжить при ошибке
+    changed_when: false  # Если скрипт идемпотентный
+
+  - name: "Show output if successful"
+    debug:
+      var: script_output.stdout_lines
+    when: script_output.rc == 0  # Выводим только при успешном выполнении
+
+  - name: "Show error if failed"
+    debug:
+      var: script_output.stderr_lines
+    when: script_output.rc != 0

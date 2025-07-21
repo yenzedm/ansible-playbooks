@@ -1,0 +1,7 @@
+---
+- hosts: monitoring
+  vars_files:
+    - group_vars/windows10.yml
+  roles:
+    - docker
+    - install_zabbix_agent2_ubuntu
