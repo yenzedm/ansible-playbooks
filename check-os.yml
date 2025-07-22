@@ -2,29 +2,29 @@
 - name: "Check OS info"
   hosts: "{{ HOSTS }}"
   gather_facts: false
-  become: yes  # Добавлено если нужны права root
+  become: yes
   tasks:
 
   - name: "Copy script"
     copy:
-      src: "files/os_info.sh"  # Лучше использовать относительный путь
-      dest: "/home/user/monitor_os.sh"  # Исправлен путь назначения
+      src: "files/os_info.sh"
+      dest: "/home/user/monitor_os.sh"
       owner: user
       group: user
-      mode: '0755'  # Более безопасные права
+      mode: '0755'
 
   - name: "Run script"
     shell: "/home/user/monitor_os.sh"
     args:
       executable: /bin/bash
     register: script_output
-    ignore_errors: yes  # Если нужно продолжить при ошибке
-    changed_when: false  # Если скрипт идемпотентный
+    ignore_errors: yes
+    changed_when: false
 
   - name: "Show output if successful"
     debug:
       var: script_output.stdout_lines
-    when: script_output.rc == 0  # Выводим только при успешном выполнении
+    when: script_output.rc == 0
 
   - name: "Show error if failed"
     debug:
