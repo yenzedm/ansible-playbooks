@@ -1,9 +1,6 @@
 ---
 - name: "Check OS info"
-  # hosts: "{{ HOSTS }}"
-  hosts: test_lin
-  vars_files:
-    - 'group_vars/test_lin'
+  hosts: "{{ HOSTS }}"
   gather_facts: false
   become: yes  # Добавлено если нужны права root
   tasks:
