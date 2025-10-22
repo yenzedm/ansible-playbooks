@@ -8,13 +8,13 @@
   - name: "Copy script"
     copy:
       src: "files/os_info.sh"
-      dest: "/home/user/monitor_os.sh"
+      dest: "/tmp"
       owner: user
       group: user
       mode: '0755'
 
   - name: "Run script"
-    shell: "/home/user/monitor_os.sh"
+    shell: "/tmp/os_info.sh"
     args:
       executable: /bin/bash
     register: script_output
