@@ -1,0 +1,42 @@
+- name: Install docker compose plugin specific version or latest
+  block:
+    - name: Wait input version
+      pause:
+        prompt: "Please enter the version from {{ github_docker_compose_plugin }} that you want to use. Example: v2.40.3 or latest"
+      register: version_input
+
+    - name: Use selected version
+      debug:
+        msg: "You selected version: {{ version_input.user_input }}"
+
+    - name: Create dir for docker compose plugin
+      file:
+        path: /usr/local/lib/docker/cli-plugins
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Download and install selected version
+      get_url:
+        url: "{{ github_docker_compose_plugin }}/download/{{ version_input.user_input }}/docker-compose-linux-{{ ansible_userspace_architecture }}"
+        dest: /usr/local/lib/docker/cli-plugins/docker-compose
+        mode: '0755'
+        owner: root
+        group: root
+      when: version_input.user_input != "latest"
+  
+    - name: Get latest release
+      shell: curl -s {{ latest_release }} | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'
+      register: compose_latest
+      when: version_input.user_input == "latest"
+
+    - name: Download and install latest version
+      get_url:
+        url: "{{ github_docker_compose_plugin }}/download/{{ compose_latest.stdout }}/docker-compose-linux-{{ ansible_userspace_architecture }}"
+        dest: /usr/local/lib/docker/cli-plugins/docker-compose
+        mode: '0755'
+        owner: root
+        group: root
+      when: version_input.user_input == "latest"
+  become: yes

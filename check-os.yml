@@ -4,7 +4,6 @@
   gather_facts: false
   become: yes
   tasks:
-
   - name: "Copy script"
     copy:
       src: "files/os_info.sh"
