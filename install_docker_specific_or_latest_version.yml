@@ -1,5 +1,6 @@
+# use on the one host
 - name: "install_docker_specific_or_latest_version"
-  hosts: "{{ HOSTS }}"
+  hosts: "{{ HOST }}"
   gather_facts: true
   vars:
     github_docker_compose_plugin: https://github.com/docker/compose/releases
