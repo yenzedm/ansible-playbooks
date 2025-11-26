@@ -28,7 +28,7 @@
             prompt: "Delete all old docker packages? (y/n)"
           register: result
 
-        - name: if yes docker
+        - name: delete all old docker packages
           dnf:
             name:
               - docker
@@ -46,7 +46,7 @@
             state: absent
           when: result.user_input == "y"
 
-        - name: if yes docker plugin
+        - name: delete old docker compose plugin
           file:
             path: /usr/local/lib/docker/cli-plugins/docker-compose 
             state: absent
@@ -84,34 +84,55 @@
 
     - name: install docker specific version or latest
       block:
-        - name: get available versions
+        - name: get available versions docker-ce
           shell: dnf list docker-ce --showduplicates | sort -r
-          register: versions_output
+          register: docker_ce_output
 
-        - name: show versions and wait for input
+        - name: show versions and wait for input (docker-ce)
           pause:
-            prompt: "Available versions:\n{{ versions_output.stdout }}\n\nPlease enter the version you want to use. Example: 4:25.0.7-4.el7 or latest"
-          register: version_input
+            prompt: "Available versions:\n{{ docker_ce_output.stdout }}\n\nPlease enter the version you want to use. Example: 4:25.0.7-4.el7 or latest"
+          register: docker_ce_input
+
+        - name: get available versions docker-ce-cli
+          shell: dnf list docker-ce-cli --showduplicates | sort -r
+          register: docker_ce_cli_output
+
+        - name: show versions and wait for input (docker-ce-cli)
+          pause:
+            prompt: "Available versions:\n{{ docker_ce_cli_output.stdout }}\n\nPlease enter the version you want to use. Example: 4:25.0.7-4.el7 or latest"
+          register: docker_ce_cli_input
 
         - name: use selected version
           debug:
-            msg: "You selected version: {{ version_input.user_input }}"
+            msg: "You selected version: docker-ce-{{ docker_ce_input.user_input }} and docker-ce-cli-{{ docker_ce_cli_input.user_input}}"
 
-        - name: install selected version
+        - name: install selected version docker-ce
           dnf:
             name:
-              - "docker-ce-{{ version_input.user_input }}"
-              - "docker-ce-cli-{{ version_input.user_input }}"
+              - "docker-ce-{{ docker_ce_input.user_input }}"
             state: present
-          when: version_input.user_input != "latest"
+          when: docker_ce_input.user_input != "latest"
 
-        - name: install latest version
+        - name: install selected version docker-ce-cli
+          dnf:
+            name:
+              - "docker-ce-cli-{{ docker_ce_cli_input.user_input }}"
+            state: present
+          when: docker_ce_cli_input.user_input != "latest"
+
+        - name: install latest version docker-ce
           dnf:
             name:
               - docker-ce
+            state: present
+          when: docker_ce_input.user_input == "latest"
+
+        - name: install latest version docker-ce-cli
+          dnf:
+            name:
               - docker-ce-cli
             state: present
-          when: version_input.user_input == "latest"
+          when: docker_ce_cli_input.user_input == "latest"
       become: yes
       when: docker_check.rc != 0
     
@@ -134,7 +155,7 @@
             prompt: "Delete all old docker packages? (y/n)"
           register: result
 
-        - name: if yes docker
+        - name: delete all old docker packages
           apt:
             name:
               - docker.io
@@ -149,7 +170,7 @@
             state: absent
           when: result.user_input == "y"
 
-        - name: if yes docker plugin
+        - name: delete old docker compose plugin
           file:
             path: /usr/local/lib/docker/cli-plugins/docker-compose 
             state: absent
@@ -212,34 +233,55 @@
 
     - name: install docker specific version or latest
       block:
-        - name: Get available versions
+        - name: Get available versions docker-ce
           shell: apt list --all-versions docker-ce 
-          register: versions_output
+          register: docker_ce_output
 
-        - name: show versions and wait for input
+        - name: show versions and wait for input (docker-ce)
           pause:
-            prompt: "Available versions:\n{{ versions_output.stdout }}\n\nPlease enter the version you want to use. Example: 5:26.1.1-1~ubuntu.24.04~noble or latest"
-          register: version_input
+            prompt: "Available versions:\n{{ docker_ce_output.stdout }}\n\nPlease enter the version you want to use. Example: 5:26.1.1-1~ubuntu.24.04~noble or latest"
+          register: docker_ce_input
 
+        - name: Get available versions docker-ce-cli
+          shell: apt list --all-versions docker-ce-cli 
+          register: docker_ce_cli_output
+
+        - name: show versions and wait for input (docker-ce-cli)
+          pause:
+            prompt: "Available versions:\n{{ docker_ce_cli_output.stdout }}\n\nPlease enter the version you want to use. Example: 5:26.1.1-1~ubuntu.24.04~noble or latest"
+          register: docker_ce_cli_input
+        
         - name: use selected version
           debug:
-            msg: "You selected version: {{ version_input.user_input }}"
+            msg: "You selected version: docker-ce={{ docker_ce_input.user_input }} and docker-ce-cli={{ docker_ce_cli_input.user_input }}"
 
-        - name: install selected version
+        - name: install selected version docker-ce
           apt:
             name:
-              - "docker-ce={{ version_input.user_input }}"
-              - "docker-ce-cli={{ version_input.user_input }}"
+              - "docker-ce={{ docker_ce_input.user_input }}"
             state: present
-          when: version_input.user_input != "latest"
+          when: docker_ce_input.user_input != "latest"
 
-        - name: install latest version
+        - name: install selected version docker-ce-cli
+          apt:
+            name:
+              - "docker-ce-cli={{ docker_ce_cli_input.user_input }}"
+            state: present
+          when: docker_ce_cli_input.user_input != "latest"
+
+        - name: install latest version docker-ce
           apt:
             name:
               - docker-ce
+            state: present
+          when: docker_ce_input.user_input == "latest"
+
+        - name: install latest version docker-ce-cli
+          apt:
+            name:
               - docker-ce-cli
             state: present
-          when: version_input.user_input == "latest"
+          when: docker_ce_cli_input.user_input == "latest"
       become: yes
       when: docker_check.rc != 0
     
