@@ -27,6 +27,7 @@
          - gpg
          - vim
          - curl
+         - git
         state: present
 
     - name: modprobe overlay
