@@ -3,7 +3,7 @@
 # Clear terminal screen
 clear
 
-unset os architecture kernelrelease ip_addresses loadaverage
+unset os architecture kernelrelease ip_addresses nameserver
 
 # Main monitoring functionality
 if [[ $# -eq 0 ]]
@@ -21,7 +21,7 @@ then
     echo "====================================="
 
     # Get OS name and version
-    cat /etc/os-release | grep 'NAME\|VERSION' | grep -v 'VERSION_ID' | grep -v 'PRETTY_NAME' > /tmp/osrelease
+    cat /etc/*rel* | grep 'NAME\|VERSION' | grep -v 'VERSION_ID' | grep -v 'PRETTY_NAME' > /tmp/osrelease
     echo -n "OS Name : " && cat /tmp/osrelease | grep -v "VERSION" | cut -f2 -d\"
     echo -n "OS Version : " && cat /tmp/osrelease | grep -v "NAME" | cut -f2 -d\"
 
@@ -104,7 +104,7 @@ then
 
     #top processes using CPU
     echo "top processes using CPU:"
-    top -b -n 1 -o %CPU | head -n 18 | tail -n +7
+    top -b -n 2 -d 1 -o %CPU | awk '/^top -/{n++} n==2' | head -n 18 | tail -n +7
 
     echo "====================================="
 
@@ -147,16 +147,12 @@ then
 
     #Get disks info
     echo "Disk Usages :"
-    df -h | grep '^/dev/' | while read -r line; do
-        cur_space=$(echo "$line" | awk '{print $(NF-1)}' | sed 's/%//')
-        partition=$(echo "$line" | awk '{print $1}')
-        echo "$partition: $cur_space% used"; done   
+    df -h 
 
     echo "====================================="
 
     # Get system load average
-    loadaverage=$(top -n 1 -b | grep "load average:" | awk '{print $(NF-2) $(NF-1) $NF}')
-    echo "Load Average : $loadaverage"
+    awk '{print $1", "$2", "$3}' /proc/loadavg
 
     echo "====================================="
 
@@ -165,9 +161,10 @@ then
     echo "System Uptime Days/(HH:MM) : $tecuptime"
 
     # Clean up variables
-    unset os architecture kernelrelease internalip ip_addresses nameserver loadaverage
+    unset os architecture kernelrelease ip_addresses nameserver
  
     # Remove temporary files
     rm /tmp/osrelease /tmp/who &> /dev/null
 }
 fi
+
